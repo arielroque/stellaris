@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: client-api
+  namespace: spire
+  labels:
+    app: client-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client-api
+  serviceName: client-api
+  template:
+    metadata:
+      #namespace: spire
+      labels:
+        app: client-api
+    spec:
+      #serviceAccountName: spire-server
+      containers:
+        - name: client-api
+          imagePullPolicy: Never
+          image: stellaris-client:latest
+
+          # args:
+          #   - -config
+          #   - /run/spire/config/server.conf
+          # ports:
+          #   - containerPort: 8081
+          volumeMounts:
+            - name: spire-bundle
+              mountPath: /run/spire/bundle
+            - name: spire-agent-socket
+              mountPath: /run/spire/sockets
+              readOnly: true
+      volumes:
+        - name: spire-bundle
+          configMap:
+            name: spire-bundle
+        - name: spire-agent-socket
+          hostPath:
+            path: /run/spire/sockets
+            type: DirectoryOrCreate
+      
