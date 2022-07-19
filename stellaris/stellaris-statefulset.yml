@@ -1,3 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: stellaris-api
+  namespace: spire
+spec:
+  type: NodePort
+  ports:
+    - name: grpc
+      port: 8090
+      targetPort: 8090
+      protocol: TCP
+  selector:
+    app: stellaris-api
+---
+
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

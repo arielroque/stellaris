@@ -16,7 +16,7 @@ import (
 
 const (
 	port       = 8080
-	quotesURL  = "https://stock-quotes-service:8090/quotes"
+	quotesURL  = "https://stellaris-api:8090/quotes"
 	socketPath = "unix:///run/spire/sockets/agent.sock"
 )
 
@@ -24,7 +24,7 @@ var (
 	latestQuotes = []*quotes.Quote(nil)
 	latestUpdate = time.Now()
 	// Stock quotes provider SPIFFE ID
-	quotesProviderSpiffeID = spiffeid.RequireFromString("spiffe://stockmarket.example/quotes-service")
+	quotesProviderSpiffeID = spiffeid.RequireFromString("spiffe://example.org/stellaris-wl")
 	x509Src                *workloadapi.X509Source
 	bundleSrc              *workloadapi.BundleSource
 )

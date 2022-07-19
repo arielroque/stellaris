@@ -36,7 +36,7 @@ var (
 		{Symbol: "KKKK"},
 	}
 	quotesMtx      = sync.RWMutex{}
-	brokerSpiffeID = spiffeid.RequireFromString("spiffe://broker.example/webapp")
+	brokerSpiffeID = spiffeid.RequireFromString("spiffe://example.org/client-wl")
 )
 
 

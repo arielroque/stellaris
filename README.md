@@ -17,3 +17,19 @@ cd stellaris
 #Start minikube
 minikube start     --extra-config=apiserver.service-account-signing-key-file=/var/lib/minikube/certs/sa.key     --extra-config=apiserver.service-account-key-file=/var/lib/minikube/certs/sa.pub     --extra-config=apiserver.service-account-issuer=api     --extra-config=apiserver.service-account-api-audiences=api,spire-server     --extra-config=apiserver.authorization-mode=Node,RBAC
 ```
+
+```bash
+kubectl port-forward client-api-0 -n spire 3000:8080
+
+```
+
+
+```bash
+curl https://localhost:3001/quotes
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: https://curl.haxx.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the web page mentioned above.
+```
