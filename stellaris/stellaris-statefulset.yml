@@ -29,21 +29,13 @@ spec:
   serviceName: stellaris-api
   template:
     metadata:
-      #namespace: spire
       labels:
         app: stellaris-api
     spec:
-      #serviceAccountName: spire-server
       nodeName: minikube-m03
       containers:
         - name: stellaris-api
-          #imagePullPolicy: Never
           image: localhost:5000/stellaris-api:latest
-          # args:
-          #   - -config
-          #   - /run/spire/config/server.conf
-          # ports:
-          #   - containerPort: 8081
           volumeMounts:
             - name: spire-bundle
               mountPath: /run/spire/bundle
