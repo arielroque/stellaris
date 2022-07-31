@@ -2,7 +2,6 @@
 
 ## :bookmark: Requirements
 - [Docker](https://docs.docker.com/engine/install/ubuntu/) 
-- [Docker Compose](https://docs.docker.com/compose/install/) 
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
 - [Minikube](https://minikube.sigs.k8s.io/docs/start/)
 
@@ -13,15 +12,25 @@
 # Clone repository
 git clone https://github.com/arielroque/stellaris.git
 cd stellaris
-
-#Start minikube
-minikube start --cpus=2 --memory='1.8g'  --nodes 3 -p node-demo   --extra-config=apiserver.service-account-signing-key-file=/var/lib/minikube/certs/sa.key     --extra-config=apiserver.service-account-key-file=/var/lib/minikube/certs/sa.pub     --extra-config=apiserver.service-account-issuer=api     --extra-config=apiserver.service-account-api-audiences=api,spire-server     --extra-config=apiserver.authorization-mode=Node,RBAC
 ```
+
+## :building_construction: Running the Cluster
 
 ```bash
-kubectl port-forward client-api-0 -n spire 3000:8080
-
+# Start cluster and registry
+./start_cluster.sh
 ```
+
+## :building_construction: Deploy Demo 
+
+```bash
+./demo.sh --deploy
+
+# See another Commands:
+# ./demo.sh --help
+```
+
+## :mag: Show Me the Answer
 
 
 ```bash
