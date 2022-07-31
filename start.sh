@@ -148,7 +148,7 @@ function deploy_stellaris {
 
 function build_images {
 
-	eval $(minikube docker-env)
+	#eval $(minikube docker-env)
 
 	(cd "${DIR}"/client/src && CGO_ENABLED=0 GOOS=linux go build -v -o "${DIR}"/client/src)
     (cd "${DIR}"/stellaris/src && CGO_ENABLED=0 GOOS=linux go build -v -o "${DIR}"/stellaris/src)
@@ -156,7 +156,13 @@ function build_images {
     cd "${DIR}"/client && docker build -t stellaris-client -f client.Dockerfile .
 	cd "${DIR}"/stellaris && docker build -t stellaris-api -f stellaris.Dockerfile . 
 
-	#eval $(minikube docker-env)
+	docker tag stellaris-client localhost:5000/stellaris-client
+	docker tag stellaris-api localhost:5000/stellaris-api
+
+	docker push localhost:5000/stellaris-client
+	docker push localhost:5000/stellaris-api
+
+
 }
 
 

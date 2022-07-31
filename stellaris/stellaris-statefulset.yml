@@ -34,10 +34,11 @@ spec:
         app: stellaris-api
     spec:
       #serviceAccountName: spire-server
+      nodeName: minikube-m03
       containers:
         - name: stellaris-api
-          imagePullPolicy: Never
-          image: stellaris-api:latest
+          #imagePullPolicy: Never
+          image: localhost:5000/stellaris-api:latest
           # args:
           #   - -config
           #   - /run/spire/config/server.conf
