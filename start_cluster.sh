@@ -34,12 +34,13 @@ function cleanup() {
 	echo -n "${bold}Cleaning up... ${norm}"
 
     minikube delete --all
+    minikube addons enable registry  
     docker rm register-container-aux -f  >/dev/null 2>&1
 	
 	echo "${green}ok${norm}."
 }
 
-trap cleanup EXIT
+# trap cleanup EXIT
 
 deploy_minikube
 deploy_register_container_aux

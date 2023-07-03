@@ -62,8 +62,9 @@ function apply_server_config() {
 	kubectl apply -f ${DIR}/spire/server-cluster-role.yaml >/dev/null
 	kubectl apply -f ${DIR}/spire/server-configmap.yaml >/dev/null
 	kubectl apply -f ${DIR}/spire/spire-bundle-configmap.yaml >/dev/null
-	kubectl apply -f ${DIR}/spire/server-statefulset.yaml >/dev/null
 	kubectl apply -f ${DIR}/spire/server-service.yaml >/dev/null
+
+	envsubst <${DIR}/spire/server-statefulset.yaml | kubectl apply -f -
 
 	sleep 5
 
@@ -83,7 +84,12 @@ function apply_agent_config() {
 	kubectl apply -f ${DIR}/spire/agent-account.yaml >/dev/null
 	kubectl apply -f ${DIR}/spire/agent-cluster-role.yaml >/dev/null
 	kubectl apply -f ${DIR}/spire/agent-configmap.yaml >/dev/null
-	kubectl apply -f ${DIR}/spire/agent-daemonset.yaml >/dev/null
+
+	SPIRE_AGENT_NODE=$SPIRE_AGENT1_NODE
+	envsubst <${DIR}/spire/agent-daemonset.yaml | kubectl apply -f -
+
+	SPIRE_AGENT_NODE=$SPIRE_AGENT2_NODE
+	envsubst <${DIR}/spire/agent-daemonset.yaml | kubectl apply -f -
 
 	sleep 5
 
@@ -138,12 +144,12 @@ function delete_entries {
 
 function deploy_client {
 	echo -n "${bold}Deploying Client... ${norm}"
-	kubectl apply -f ${DIR}/client/client-statefulset.yml
+	envsubst <${DIR}/client/client-statefulset.yml | kubectl apply -f -
 }
 
 function deploy_stellaris {
 	echo -n "${bold}Deploying Stellaris... ${norm}"
-	kubectl apply -f ${DIR}/stellaris/stellaris-statefulset.yml
+	envsubst <${DIR}/stellaris/stellaris-statefulset.yml | kubectl apply -f -
 }
 
 function build_images {
@@ -177,6 +183,13 @@ function deploy_demo() {
 }
 
 function cleanup() {
+
+	namespaces=$(kubectl get ns)
+
+	if [[ $namespaces != *"spire"* ]]; then
+		return
+	fi
+
 	echo -n "${bold}Cleaning up... ${norm}"
 	if [ ! -z "${SUCCESS}" ]; then
 		rm -rf ${TMPDIR}

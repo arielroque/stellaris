@@ -34,6 +34,12 @@ cd stellaris
 
 
 ```bash
+kubectl port-forward client-api-0 -n spire 8080:8080
+
+minikube service client-api -n spire
+
+
+
 curl https://localhost:3001/quotes
 curl: (60) SSL certificate problem: unable to get local issuer certificate
 More details here: https://curl.haxx.se/docs/sslcerts.html
