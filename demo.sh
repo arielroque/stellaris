@@ -58,10 +58,13 @@ function create_agent_entry() {
 function apply_server_config() {
 	echo -n "${bold}Applying SPIRE server k8s configuration... ${norm}"
 	kubectl apply -f ${DIR}/spire/spire-namespace.yaml >/dev/null
+	kubectl apply -f ${DIR}/spire/client-namespace.yaml >/dev/null
+	kubectl apply -f ${DIR}/spire/server-namespace.yaml >/dev/null
 	kubectl apply -f ${DIR}/spire/server-account.yaml >/dev/null
 	kubectl apply -f ${DIR}/spire/server-cluster-role.yaml >/dev/null
 	kubectl apply -f ${DIR}/spire/server-configmap.yaml >/dev/null
-	kubectl apply -f ${DIR}/spire/spire-bundle-configmap.yaml >/dev/null
+	kubectl apply -f ${DIR}/spire/spire-client-bundle-configmap.yaml >/dev/null
+	kubectl apply -f ${DIR}/spire/spire-server-bundle-configmap.yaml >/dev/null
 	kubectl apply -f ${DIR}/spire/server-service.yaml >/dev/null
 
 	envsubst <${DIR}/spire/server-statefulset.yaml | kubectl apply -f -

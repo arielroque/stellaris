@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: stellaris-api
-  namespace: spire
+  namespace: client
 spec:
   type: NodePort
   ports:
@@ -18,7 +18,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: stellaris-api
-  namespace: spire
+  namespace: client
   labels:
     app: stellaris-api
 spec:

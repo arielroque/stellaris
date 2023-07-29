@@ -5,7 +5,7 @@ metadata:
   name: spire-agent-cluster-role
 rules:
 - apiGroups: [""]
-  resources: ["pods","nodes","nodes/proxy"]
+  resources: ["pods", "nodes", "nodes/proxy"]
   verbs: ["get"]
 
 ---
@@ -17,7 +17,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: spire-agent
-  namespace: spire
+  namespace: client
 roleRef:
   kind: ClusterRole
   name: spire-agent-cluster-role
