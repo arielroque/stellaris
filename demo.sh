@@ -125,10 +125,6 @@ function check_for_node_attestation() {
 	exit -1
 }
 
-function tear_down_config() {
-	kubectl delete namespace spire >/dev/null || true
-}
-
 function delete_entries {
 
 	SPIRE_SERVER=$(kubectl get pods -n spire -o=jsonpath='{.items[0].metadata.name}' -l app=spire-server)
@@ -144,11 +140,13 @@ function delete_entries {
 
 function deploy_client {
 	echo -n "${bold}Deploying Client... ${norm}"
+	kubectl create namespace client
 	envsubst <${DIR}/client/client-statefulset.yml | kubectl apply -f -
 }
 
 function deploy_stellaris {
 	echo -n "${bold}Deploying Stellaris... ${norm}"
+	kubectl create namespace server
 	envsubst <${DIR}/stellaris/stellaris-statefulset.yml | kubectl apply -f -
 }
 
@@ -167,8 +165,27 @@ function build_images {
 	docker push localhost:5000/stellaris-api
 }
 
+function deploy_minikube() {
+    minikube start \
+        --cpus=2 \
+        --memory='1.8g' \
+        --nodes 3 \
+        --extra-config=apiserver.service-account-signing-key-file=/var/lib/minikube/certs/sa.key \
+        --extra-config=apiserver.service-account-key-file=/var/lib/minikube/certs/sa.pub \
+        --extra-config=apiserver.service-account-issuer=api \
+        --extra-config=apiserver.service-account-api-audiences=api,spire-server \
+        --extra-config=apiserver.authorization-mode=Node,RBAC
+    
+    # Enable registry addon
+    minikube addons enable registry  
+}
+
+function deploy_register_container_aux(){
+    docker run --name register-container-aux --rm -d -t --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000"
+}
+
 function deploy_demo() {
-	cleanup
+	cleanup_demo
 	build_images
 	apply_server_config
 	delete_entries
@@ -182,7 +199,7 @@ function deploy_demo() {
 	echo "${bold}Success.${norm}"
 }
 
-function cleanup() {
+function cleanup_demo() {
 
 	namespaces=$(kubectl get ns)
 
@@ -190,11 +207,26 @@ function cleanup() {
 		return
 	fi
 
-	echo -n "${bold}Cleaning up... ${norm}"
+	echo -n "${bold}Cleaning demo... ${norm}"
+	
 	if [ ! -z "${SUCCESS}" ]; then
 		rm -rf ${TMPDIR}
 	fi
-	tear_down_config
+
+	kubectl delete namespace spire >/dev/null || true
+	kubectl delete namespace client >/dev/null || true
+	kubectl delete namespace server >/dev/null || true
+
+	echo "${green}ok${norm}."
+}
+
+function delete_minikube_cluster() {
+	echo -n "${bold}Deleting minikube cluster ... ${norm}"
+
+    minikube delete --all
+    minikube addons enable registry  
+    docker rm register-container-aux -f  >/dev/null 2>&1
+	
 	echo "${green}ok${norm}."
 }
 
@@ -204,6 +236,9 @@ COMMAND=$1
 
 case $COMMAND in
 --deploy) deploy_demo ;;
---cleanup) cleanup ;;
+--create-minikube-cluster) deploy_minikube ;; 
+--cleanup-demo) cleanup_demo ;;
+--delete-minikube-cluster) delete_minikube_cluster ;; 
+
 *) echo -e "Invalid command!\n" && echo -e $HELP ;;
 esac

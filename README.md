@@ -34,9 +34,9 @@ cd stellaris
 
 
 ```bash
-kubectl port-forward client-api-0 -n spire 8080:8080
+kubectl port-forward client-api-0 -n client 8080:8080
 
-minikube service client-api -n spire
+minikube service client-api -n client
 
 
 

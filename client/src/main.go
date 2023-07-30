@@ -1,6 +1,7 @@
 package main
 
 import (
+	"broker-webapp/quotes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,7 +9,7 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"broker-webapp/quotes"
+
 	"github.com/spiffe/go-spiffe/v2/spiffeid"
 	"github.com/spiffe/go-spiffe/v2/spiffetls/tlsconfig"
 	"github.com/spiffe/go-spiffe/v2/workloadapi"
@@ -16,7 +17,7 @@ import (
 
 const (
 	port       = 8080
-	quotesURL  = "https://stellaris-api:8090/quotes"
+	quotesURL  = "https://stellaris-api.server:8090/quotes"
 	socketPath = "unix:///run/spire/sockets/agent.sock"
 )
 
