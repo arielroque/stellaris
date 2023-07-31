@@ -7,7 +7,6 @@
 
 ## :triangular_flag_on_post: Starting
 
-
 ```bash
 # Clone repository
 git clone https://github.com/arielroque/stellaris.git
@@ -34,12 +33,12 @@ cd stellaris
 
 
 ```bash
+# Open port to access the client
 kubectl port-forward client-api-0 -n client 8080:8080
-
-minikube service client-api -n client
-
+```
 
 
+```bash
 curl https://localhost:3001/quotes
 curl: (60) SSL certificate problem: unable to get local issuer certificate
 More details here: https://curl.haxx.se/docs/sslcerts.html
