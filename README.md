@@ -13,13 +13,6 @@ git clone https://github.com/arielroque/stellaris.git
 cd stellaris
 ```
 
-## :building_construction: Running the Cluster
-
-```bash
-# Start cluster and registry
-./start_cluster.sh
-```
-
 ## :building_construction: Deploy Demo 
 
 ```bash
