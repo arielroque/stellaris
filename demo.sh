@@ -93,11 +93,11 @@ function deploy_spire_server() {
 	echo "${green}ok.${norm}"
 }
 
-function deploy_spire_agent() {
+function deploy_spire_agents() {
 	echo ""
 	echo -ne "${green}"
     echo "┌────────────────────────────┐"
-    echo "  SPIRE Agent"
+    echo "  SPIRE Agents"
     echo "└────────────────────────────┘"
     echo -ne "${nn}"
 	echo ""
@@ -117,6 +117,24 @@ function deploy_spire_agent() {
 		-o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' | grep True; do
 		sleep 5
 	done
+
+	echo "${green}ok.${norm}"
+}
+
+function delete_spire_agents {
+	echo ""
+	echo -ne "${green}"
+    echo "┌────────────────────────────┐"
+    echo "  Deleting SPIRE Agents"
+    echo "└────────────────────────────┘"
+    echo -ne "${nn}"
+	echo ""
+
+	echo -n "${bold}Applying SPIRE agent k8s configuration... ${norm}"
+	kubectl delete -f ${DIR}/spire/agent-account.yaml >/dev/null
+	kubectl delete -f ${DIR}/spire/agent-cluster-role.yaml >/dev/null
+	kubectl delete -f ${DIR}/spire/agent-configmap.yaml >/dev/null
+	kubectl delete -f ${DIR}/spire/agent-daemonset.yaml >/dev/null
 
 	echo "${green}ok.${norm}"
 }
@@ -274,6 +292,8 @@ case $COMMAND in
 --deploy) deploy_demo ;;
 --create-minikube-cluster) create_minikube_cluster ;; 
 --cleanup-demo) cleanup_demo ;;
+--deploy-spire-agents) deploy_spire_agents;;
+--delete-spire-agents) delete_spire_agents;;
 --delete-minikube-cluster) delete_minikube_cluster ;; 
 
 *) echo -e "Invalid command!\n" && echo -e $HELP ;;
