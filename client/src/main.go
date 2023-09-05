@@ -24,7 +24,7 @@ const (
 var (
 	latestQuotes = []*quotes.Quote(nil)
 	latestUpdate = time.Now()
-	// Stock quotes provider SPIFFE ID
+	// Stellaris quotes provider SPIFFE ID
 	quotesProviderSpiffeID = spiffeid.RequireFromString("spiffe://example.org/stellaris-wl")
 	x509Src                *workloadapi.X509Source
 	bundleSrc              *workloadapi.BundleSource

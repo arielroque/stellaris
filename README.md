@@ -45,7 +45,12 @@ Open in your browser: localhost:8080/quotes
 ```bash
 # Delete SPIRE Agents
 ./demo.sh --delete-spire-agents
+
+# Get
+kubectl get pods -n spire
 ```
+
+
 [show image]
 
 ```bash
@@ -61,4 +66,14 @@ kubectl logs stellaris-api-0 -n server
 ```bash
 ./demo.sh --deploy-spire-agents
 ```
-[maybe show something about the bundle]
+[show image]
+
+## :mag: Uninstall
+
+```bash
+# Cleanup demo
+./demo.sh --cleanup-demo
+
+# Delete cluster
+./demo.sh --delete-minikube-cluster
+```

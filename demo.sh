@@ -246,7 +246,7 @@ function deploy_demo() {
 	delete_entries
 	create_spire_agent_entry
 	create_workload_entry
-	deploy_spire_agent
+	deploy_spire_agents
 	check_for_node_attestation
 	deploy_client
 	deploy_server

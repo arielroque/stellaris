@@ -8,79 +8,107 @@ import (
 
 const markup = `
 <!DOCTYPE html>
-<html>
-    <head>
+<html lang="en">
 
-    </head>
-    <body>
-        <style>
-            body {
-                font-family: Arial, Helvetica, sans-serif;
-                margin: 0 20%;
-            }
-            .right {
-                text-align: right;
-            }
-            .center {
-                text-align: center;
-            }
-            .quotes {
-                width: 100%;
-            }
-            .quotes, .quotes td, .quotes th {
-                border-spacing: 0;
-                border: 1px solid black;
-            }
-            .error {
-                color: red;
-            }
-        </style>
-        {{if .Err}}
-        <div class="error">Quotes service unavailable</div>
-        {{end}}
-        <table class="quotes">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellaris</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        :root {
+            --primary-color: #BEDA1A;
+            --secondary-color: #2F2F2F;
+            --accent-color: #48C792;
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+        }
+
+        .navbar-brand {
+            font-size: 24px;
+        }
+
+        .table-primary {
+            background-color: var(--primary-color);
+        }
+
+        .table-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .table-accent {
+            background-color: var(--accent-color);
+        }
+
+        .error {
+            color: red;
+        }
+
+        .right {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Stellaris</a>
+        </div>
+    </nav>
+
+    {{if .Err}}
+    <div class="container mt-5">
+        <div class="error">Stellaris server unavailable. Check connection...</div>
+    </div>
+    {{end}}
+
+    <div class="container mt-5">
+        <h4>Realtime data</h4>
+        <table class="table table-bordered">
             <caption class="right">Last Updated: {{.LastUpdated.Format "Jan 2 15:04:05"}}</caption>
             <thead>
                 <tr>
-                    <th scope="col">Symbol</th>
-                    <th scope="col">Price</th>
-                    <th scope="col">Open</th>
-                    <th scope="col">Low</th>
-                    <th scope="col">High</th>
-                    <th scope="col">Close</th>
-                    <th scope="col">Time</th>
+                    <th class="table-secondary">Sensor</th>
+                    <th class="table-secondary">Status</th>
+                    <th class="table-secondary">Time</th>
                 </tr>
             </thead>
-			<tbody>
-				{{range .Data}}
+            <tbody>
+                {{range .Data}}
                 <tr>
-                    <th scope="row">{{.Symbol}}</th>
+                    <td>{{.Sensor}}</td>
                     {{if .Time}}
-                    <td class="right">{{.Price | printf "%.2f"}}</td>
-                    <td class="right">{{.Open | printf "%.2f"}}</td>
-                    <td class="right">{{.Low | printf "%.2f"}}</td>
-                    <td class="right">{{.High | printf "%.2f"}}</td>
-                    <td class="right">{{.Close | printf "%.2f"}}</td>
+                    <td>{{.Status | printf "%.2f"}}</td>
                     <td class="center">{{.Time.Format "15:04:05"}}</td>
                     {{else}}
-                    <td class="right">-</td>
-                    <td class="right">-</td>
-                    <td class="right">-</td>
-                    <td class="right">-</td>
-                    <td class="right">-</td>
-                    <td class="center">-</td>
+                    <td>-</td>
+                    <td>-</td>
                     {{end}}
                 </tr>
                 {{end}}
             </tbody>
         </table>
-        <script>
+    </div>
+    <footer class="text-white" style="background-color: var(--secondary-color);">
+        <div class="container py-4">
+          <p>&copy; 2023 Stellaris. All rights reserved.</p>
+        </div>
+      </footer>
+    <!-- Include Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
             function refresh() {
                 window.location.reload(true);
             }
             setTimeout(refresh, 1000);
-        </script>        
-    </body>
+    </script>      
+</body>
+
 </html>
 `
 
@@ -89,12 +117,8 @@ var Page *template.Template
 
 // Quote represent a quote for a specific symbol in a specific time.
 type Quote struct {
-	Symbol string
-	Price  float64
-	Open   float64
-	Low    float64
-	High   float64
-	Close  float64
+	Sensor string
+	Status float64
 	Time   *time.Time
 }
 

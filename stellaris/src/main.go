@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math"
 	"math/rand"
 	"net/http"
 	"sync"
@@ -23,25 +22,24 @@ const (
 
 var (
 	quotes = []*Quote{
-		{Symbol: "AAAA"},
-		{Symbol: "BBBB"},
-		{Symbol: "CCCC"},
-		{Symbol: "DDDD"},
-		{Symbol: "EEEE"},
-		{Symbol: "FFFF"},
-		{Symbol: "GGGG"},
-		{Symbol: "HHHH"},
-		{Symbol: "IIII"},
-		{Symbol: "JJJJ"},
-		{Symbol: "KKKK"},
+		{Sensor: "Inertial Measurement Unit (IMU)"},
+		{Sensor: "Thermocouple"},
+		{Sensor: "Pressure Sensor"},
+		{Sensor: "Altitude Sensor"},
+		{Sensor: "Power Monitoring"},
+		{Sensor: "Environmental Sensor"},
+		{Sensor: "Communication System"},
+		{Sensor: "Fault Detection"},
+		{Sensor: "Emergency Systems"},
+		{Sensor: "Structural Integrity Sensor"},
+		{Sensor: "Gas Sensor"},
 	}
 	quotesMtx      = sync.RWMutex{}
 	brokerSpiffeID = spiffeid.RequireFromString("spiffe://example.org/client-wl")
 )
 
-
 func main() {
-	
+
 	log.Println("Service waiting for an X.509 SVID...")
 
 	ctx := context.Background()
@@ -73,7 +71,7 @@ func main() {
 
 	http.HandleFunc("/quotes", quotesHandler)
 
-	log.Printf("Stock quotes service listening on port %d...", port)
+	log.Printf("Stellaris service listening on port %d...", port)
 
 	err = server.ListenAndServeTLS("", "")
 	if err != nil {
@@ -84,12 +82,8 @@ func main() {
 
 // Quote represent a quote for a specific symbol in a specific time.
 type Quote struct {
-	Symbol string
-	Price  float64
-	Open   float64
-	Low    float64
-	High   float64
-	Close  float64
+	Sensor string
+	Status float64
 	Time   *time.Time
 }
 
@@ -114,17 +108,11 @@ func randomizeQuotes() {
 			priceDelta := rand.NormFloat64() * 1.5
 			now := time.Now()
 			if quote.Time == nil {
-				quote.Open = priceDelta + 10 + 100*rand.Float64()
-				quote.Low = quote.Open
-				quote.High = quote.Open
-				quote.Close = quote.Open - rand.NormFloat64()*1.5
-				quote.Price = quote.Open
+				quote.Status = priceDelta + 10 + 100*rand.Float64()
 			} else {
-				quote.Price += priceDelta
+				quote.Status += priceDelta
 			}
 			quote.Time = &now
-			quote.Low = math.Min(quote.Price, quote.Low)
-			quote.High = math.Max(quote.Price, quote.High)
 		}
 	}
 	quotesMtx.Unlock()
