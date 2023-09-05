@@ -1,13 +1,13 @@
 package main
 
 import (
-	"broker-webapp/quotes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"stellaris-client/quotes"
 	"time"
 
 	"github.com/spiffe/go-spiffe/v2/spiffeid"
@@ -17,7 +17,7 @@ import (
 
 const (
 	port       = 8080
-	quotesURL  = "https://stellaris-api.server:8090/quotes"
+	quotesURL  = "https://stellaris-api.server:8090/dashboard"
 	socketPath = "unix:///run/spire/sockets/agent.sock"
 )
 
@@ -31,7 +31,7 @@ var (
 )
 
 func main() {
-	log.Print("Webapp waiting for an X.509 SVID...")
+	log.Print("Client waiting for an X.509 SVID...")
 
 	ctx := context.Background()
 
@@ -46,7 +46,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Print("Webapp waiting for a trust bundle...")
+	log.Print("Client waiting for a trust bundle...")
 
 	bundleSrc, err = workloadapi.NewBundleSource(ctx,
 		workloadapi.WithClientOptions(
@@ -60,9 +60,9 @@ func main() {
 	server := &http.Server{
 		Addr: fmt.Sprintf(":%d", port),
 	}
-	http.HandleFunc("/quotes", quotesHandler)
+	http.HandleFunc("/dashboard", quotesHandler)
 
-	log.Printf("Webapp listening on port %d...", port)
+	log.Printf("Client listening on port %d...", port)
 
 	err = server.ListenAndServe()
 	if err != nil {

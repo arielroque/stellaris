@@ -69,7 +69,7 @@ func main() {
 		TLSConfig: tlsconfig.MTLSServerConfig(x509Src, bundleSrc, tlsconfig.AuthorizeID(brokerSpiffeID)),
 	}
 
-	http.HandleFunc("/quotes", quotesHandler)
+	http.HandleFunc("/dashboard", quotesHandler)
 
 	log.Printf("Stellaris service listening on port %d...", port)
 

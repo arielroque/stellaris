@@ -38,7 +38,7 @@ cd stellaris
 # Open port to access the client
 kubectl port-forward client-api-0 -n client 8080:8080
 ```
-Open in your browser: localhost:8080/quotes
+Open in your browser: localhost:8080/dashboard
 
 ## :mag: Show Me the Answer
 
