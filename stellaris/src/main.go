@@ -21,7 +21,7 @@ const (
 )
 
 var (
-	quotes = []*Quote{
+	dataList = []*Data{
 		{Sensor: "Inertial Measurement Unit (IMU)"},
 		{Sensor: "Thermocouple"},
 		{Sensor: "Pressure Sensor"},
@@ -34,7 +34,7 @@ var (
 		{Sensor: "Structural Integrity Sensor"},
 		{Sensor: "Gas Sensor"},
 	}
-	quotesMtx      = sync.RWMutex{}
+	dataMtx        = sync.RWMutex{}
 	brokerSpiffeID = spiffeid.RequireFromString("spiffe://example.org/client-wl")
 )
 
@@ -69,7 +69,7 @@ func main() {
 		TLSConfig: tlsconfig.MTLSServerConfig(x509Src, bundleSrc, tlsconfig.AuthorizeID(brokerSpiffeID)),
 	}
 
-	http.HandleFunc("/dashboard", quotesHandler)
+	http.HandleFunc("/dashboard", dataHandler)
 
 	log.Printf("Stellaris service listening on port %d...", port)
 
@@ -80,20 +80,20 @@ func main() {
 
 }
 
-// Quote represent a quote for a specific symbol in a specific time.
-type Quote struct {
+// Data represent a quote for a specific Sensor in a specific time.
+type Data struct {
 	Sensor string
 	Status float64
 	Time   *time.Time
 }
 
-func quotesHandler(resp http.ResponseWriter, req *http.Request) {
-	randomizeQuotes()
+func dataHandler(resp http.ResponseWriter, req *http.Request) {
+	randomizedata()
 
 	encoder := json.NewEncoder(resp)
-	quotesMtx.RLock()
-	err := encoder.Encode(quotes)
-	quotesMtx.RUnlock()
+	dataMtx.RLock()
+	err := encoder.Encode(dataList)
+	dataMtx.RUnlock()
 	if err != nil {
 		log.Printf("Error encoding data: %v", err)
 		resp.WriteHeader(http.StatusInternalServerError)
@@ -101,19 +101,19 @@ func quotesHandler(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func randomizeQuotes() {
-	quotesMtx.Lock()
-	for _, quote := range quotes {
+func randomizedata() {
+	dataMtx.Lock()
+	for _, data := range dataList {
 		if rand.Int()%4 == 0 {
 			priceDelta := rand.NormFloat64() * 1.5
 			now := time.Now()
-			if quote.Time == nil {
-				quote.Status = priceDelta + 10 + 100*rand.Float64()
+			if data.Time == nil {
+				data.Status = priceDelta + 10 + 100*rand.Float64()
 			} else {
-				quote.Status += priceDelta
+				data.Status += priceDelta
 			}
-			quote.Time = &now
+			data.Time = &now
 		}
 	}
-	quotesMtx.Unlock()
+	dataMtx.Unlock()
 }

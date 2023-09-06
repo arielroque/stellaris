@@ -1,4 +1,4 @@
-package quotes
+package dashboard
 
 import (
 	"html/template"
@@ -112,11 +112,11 @@ const markup = `
 </html>
 `
 
-// Page is the quotes page template already parsed.
+// Page is the dashboard page template already parsed.
 var Page *template.Template
 
-// Quote represent a quote for a specific symbol in a specific time.
-type Quote struct {
+// Data represent a data for a specific Sensor in a specific time.
+type Data struct {
 	Sensor string
 	Status float64
 	Time   *time.Time
@@ -124,7 +124,7 @@ type Quote struct {
 
 func init() {
 	var err error
-	Page, err = template.New("quotes").Parse(markup)
+	Page, err = template.New("dashboard").Parse(markup)
 	if err != nil {
 		log.Fatal(err)
 	}
