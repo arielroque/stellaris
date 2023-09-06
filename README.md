@@ -61,6 +61,36 @@ Open in your browser: [localhost:8080/dashboard](http://localhost:8080/dashboard
 
 ## :mag: Does SPIFFE/SPIRE really work?
 
+### Try to get information from a server using another client
+The idea here is to try to communicate with the server that has secret information using another client that does not have an identity
+
+```bash
+# Open port to access the server
+kubectl port-forward stellaris-api-0 -n client 8090:8090
+```
+Since the connection between the client and server is TLS, let's try to communicate by skipping the identity
+
+```
+# Make a request http using curl client
+curl https://localhost:8090 -k
+...
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: https://curl.haxx.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the web page mentioned above.
+```
+The connection requires mutual TLS which means a valid client identity to establish communication. We can see that looking in server logs
+
+```bash
+2023/09/06 00:33:35 Service waiting for an X.509 SVID...
+2023/09/06 00:33:36 Service waiting for a trust bundle...
+2023/09/06 00:33:36 Stellaris service listening on port 8090...
+2023/09/06 02:49:53 http: TLS handshake error from 127.0.0.1:52236: tls: client didn't provide a certificate
+```
+
+### Kill Spire-agents
 We deployed the applications, and the identities are continuously created by the SPIRE Server every 60s. Is possible after the application is already running, kill the SPIRE agents and keep everything working? Let`s try it  
 
 ```bash
