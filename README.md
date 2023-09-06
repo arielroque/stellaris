@@ -13,15 +13,15 @@
 ```mermaid
 flowchart TB
     subgraph Server Node
-    Spire-agent2-->Stellaris-server
+    Spire-agent2--"deliver identity to application"-->Stellaris-server
     end
-    Spire-Server-->Spire-agent1
+    Spire-Server--"send client identity to the agent"-->Spire-agent1
     subgraph Spire Node
-    Spire-Server-->Spire-agent2
+    Spire-Server--"send server identity to the agent"-->Spire-agent2
     end
-    Client-->Stellaris-server
+    Client--"request data"-->Stellaris-server
     subgraph Client Node
-    Spire-agent1-->Client
+    Spire-agent1--"deliver identity to application"-->Client
     end
 
 
