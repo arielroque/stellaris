@@ -9,6 +9,24 @@
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
 - [Minikube](https://minikube.sigs.k8s.io/docs/start/)
 
+## :clipboard: Flowchart
+```mermaid
+flowchart TB
+    subgraph Server Node
+    Spire-agent2-->Stellaris-server
+    end
+    Spire-Server-->Spire-agent1
+    subgraph Spire Node
+    Spire-Server-->Spire-agent2
+    end
+    Client-->Stellaris-server
+    subgraph Client Node
+    Spire-agent1-->Client
+    end
+
+
+```
+
 ## :triangular_flag_on_post: Starting
 
 ```bash
@@ -38,18 +56,17 @@ cd stellaris
 # Open port to access the client
 kubectl port-forward client-api-0 -n client 8080:8080
 ```
-Open in your browser: localhost:8080/dashboard
+Open in your browser: [localhost:8080/dashboard](http://localhost:8080/dashboard)
 
-## :mag: Show Me the Answer
+## :mag: Does SPIFFE/SPIRE really work?
 
 ```bash
 # Delete SPIRE Agents
 ./demo.sh --delete-spire-agents
 
-# Get
-kubectl get pods -n spire
+# List pods in SPIRE namespace
+# kubectl get pods -n spire
 ```
-
 
 [show image]
 
@@ -68,7 +85,7 @@ kubectl logs stellaris-api-0 -n server
 ```
 [show image]
 
-## :mag: Uninstall
+## :arrow_left: Uninstall
 
 ```bash
 # Cleanup demo
