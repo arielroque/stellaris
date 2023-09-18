@@ -1,4 +1,4 @@
-# Stellaris
+![logo](/images/stellaris_logo.png)
 
 ## :heavy_exclamation_mark: Prerequirements
 - 8 GB RAM
