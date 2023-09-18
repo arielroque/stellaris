@@ -56,7 +56,10 @@ const markup = `
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">Stellaris</a>
+            <a class="navbar-brand" href="#"> 
+            <img src="https://github.com/arielroque/stellaris/blob/developer/images/icon.png" alt="Stellaris Logo" width="50">
+            <span class="ml-2">Stellaris</span>
+            </a>
         </div>
     </nav>
 
