@@ -22,7 +22,10 @@ SPIRE_NAMESPACE=spire
 HELP="Usage: \n
 \tdemo --create-minikube-cluster\n
 \tdemo --deploy\n 
+\tdemo --build-images\n
 \tdemo --cleanup-demo\n
+\tdemo --deploy-spire-agents\n
+\tdemo --delete-spire-agents\n
 \tdemo --delete-minikube-cluster 
 "
 
@@ -121,7 +124,7 @@ function deploy_spire_agents() {
 	echo "${green}ok.${norm}"
 }
 
-function delete_spire_agents {
+function delete_spire_agents() {
 	echo ""
 	echo -ne "${green}"
     echo "┌────────────────────────────┐"
@@ -159,7 +162,7 @@ function check_for_node_attestation() {
 	exit -1
 }
 
-function delete_entries {
+function delete_entries() {
 	SPIRE_SERVER=$(kubectl get pods -n spire -o=jsonpath='{.items[0].metadata.name}' -l app=spire-server)
 
 	entries=$(kubectl exec -n spire $SPIRE_SERVER -- /opt/spire/bin/spire-server entry show | grep "Entry" | cut -d ':' -f 2)
@@ -171,7 +174,7 @@ function delete_entries {
 	echo "Deleted entries from K8S!"
 }
 
-function deploy_client {
+function deploy_client() {
     echo ""
 	echo -ne "${green}"
     echo "┌────────────────────────────┐"
@@ -188,7 +191,7 @@ function deploy_client {
 	envsubst <${DIR}/client/client-statefulset.yml | kubectl apply -f -
 }
 
-function deploy_server {
+function deploy_server() {
     echo ""
 	echo -ne "${green}"
     echo "┌────────────────────────────┐"
@@ -205,43 +208,42 @@ function deploy_server {
 	envsubst <${DIR}/stellaris/stellaris-statefulset.yml | kubectl apply -f -
 }
 
-function build_images {
+function build_images() {
+	CONTAINER_REGISTRY=$1
+
+	echo $CONTAINER_REGISTRY
+
+	if [ -z "$CONTAINER_REGISTRY" ]; then
+    	echo "${yellow}Container registry need to be passed... Try again${norm}"
+		exit
+	fi
+  
+	
 	(cd "${DIR}"/client/src && CGO_ENABLED=0 GOOS=linux go build -v -o "${DIR}"/client/src)
 	(cd "${DIR}"/stellaris/src && CGO_ENABLED=0 GOOS=linux go build -v -o "${DIR}"/stellaris/src)
 
-	cd "${DIR}"/client && docker build -t stellaris-client -f client.Dockerfile .
-	cd "${DIR}"/stellaris && docker build -t stellaris-api -f stellaris.Dockerfile .
+	cd "${DIR}"/client && docker build -t $CONTAINER_REGISTRY:client -f client.Dockerfile .
+	cd "${DIR}"/stellaris && docker build -t $CONTAINER_REGISTRY:server -f stellaris.Dockerfile .
 
-	docker tag stellaris-client localhost:5000/stellaris-client
-	docker tag stellaris-api localhost:5000/stellaris-api
-
-	docker push localhost:5000/stellaris-client
-	docker push localhost:5000/stellaris-api
+	docker push $CONTAINER_REGISTRY:client
+	docker push $CONTAINER_REGISTRY:server
 }
 
 function create_minikube_cluster() {
     minikube start \
+		--kubernetes-version=v1.23.8 \
         --cpus=2 \
-        --memory='1.8g' \
+        --memory='2g' \
         --nodes 3 \
         --extra-config=apiserver.service-account-signing-key-file=/var/lib/minikube/certs/sa.key \
         --extra-config=apiserver.service-account-key-file=/var/lib/minikube/certs/sa.pub \
         --extra-config=apiserver.service-account-issuer=api \
         --extra-config=apiserver.service-account-api-audiences=api,spire-server \
         --extra-config=apiserver.authorization-mode=Node,RBAC
-    
-    minikube addons enable registry 
-
-	deploy_register_container_aux
-}
-
-function deploy_register_container_aux(){
-    docker run --name register-container-aux --rm -d -t --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000"
 }
 
 function deploy_demo() {
 	cleanup_demo
-	build_images
 	deploy_spire_server
 	delete_entries
 	create_spire_agent_entry
@@ -290,6 +292,7 @@ COMMAND=$1
 
 case $COMMAND in
 --deploy) deploy_demo ;;
+--build-images) build_images $2;;
 --create-minikube-cluster) create_minikube_cluster ;; 
 --cleanup-demo) cleanup_demo ;;
 --deploy-spire-agents) deploy_spire_agents;;

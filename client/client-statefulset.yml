@@ -34,7 +34,8 @@ spec:
       nodeName: minikube-m02
       containers:
       - name: client-api
-        image: localhost:5000/stellaris-client:latest
+        image: arieluz/stellaris:client
+        imagePullPolicy: Always
         volumeMounts:
         - name: spire-bundle
           mountPath: /run/spire/bundle

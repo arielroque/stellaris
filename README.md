@@ -66,7 +66,7 @@ The idea here is to try to communicate with the server that has secret informati
 
 ```bash
 # Open port to access the server
-kubectl port-forward stellaris-api-0 -n client 8090:8090
+kubectl port-forward stellaris-api-0 -n server 8090:8090
 ```
 Since the connection between the client and server is TLS, let's try to communicate by skipping the identity
 
@@ -112,9 +112,20 @@ kubectl logs client-api-0 -n client
 ```
 
 ```bash
+2023/10/07 01:04:21 Error getting data: Get "https://stellaris-api.server:8090/dashboard": x509svid: could not verify leaf certificate: x509: certificate has expired or is not yet valid: current time 2023-10-07T01:04:21Z is after 2023-10-07T00:56:17Z
+2023/10/07 01:04:23 Error getting data: Get "https://stellaris-api.server:8090/dashboard": x509svid: could not verify leaf certificate: x509: certificate has expired or is not yet valid: current time 2023-10-07T01:04:23Z is after 2023-10-07T00:56:17Z
+```
+
+```bash
 # Get logs from stellaris API
 kubectl logs stellaris-api-0 -n server
 ```
+
+```bash
+2023/10/07 01:03:01 Error getting data: Get "https://stellaris-api.server:8090/dashboard": x509svid: could not verify leaf certificate: x509: certificate has expired or is not yet valid: current time 2023-10-07T01:03:01Z is after 2023-10-07T00:56:17Z
+2023/10/07 01:03:03 Error getting data: Get "https://stellaris-api.server:8090/dashboard": x509svid: could not verify leaf certificate: x509: certificate has expired or is not yet valid: current time 2023-10-07T01:03:03Z is after 2023-10-07T00:56:17Z
+```
+
 The certificates as expected are not valid anymore and the connection is not allowed. Let's deploy the SPIRE agents again to solve this problem.
 
 ```bash
