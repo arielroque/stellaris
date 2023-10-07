@@ -104,7 +104,7 @@ We deployed the applications, and the identities are continuously created by the
 ```
 Let`s wait 60s to check if something changes...
 
-![stellaris client not working](images/stellaris-client_not_working.png)
+![stellaris client not working](images/stellaris_client_not_working.png)
 
 As we can see, the application is not working well... we lost the connection with the server. We can check the logs in the Client and Server to try understand the problem
 
