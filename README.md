@@ -59,6 +59,8 @@ kubectl port-forward client-api-0 -n client 8080:8080
 ```
 Open in your browser: [localhost:8080/dashboard](http://localhost:8080/dashboard)
 
+![stellaris client](images/stellaris_client.png)
+
 ## :mag: Does SPIFFE/SPIRE really work?
 
 ### Try to get information from a server using another client
@@ -102,7 +104,7 @@ We deployed the applications, and the identities are continuously created by the
 ```
 Let`s wait 60s to check if something changes...
 
-[show image]
+![stellaris client not working](images/stellaris-client_not_working.png)
 
 As we can see, the application is not working well... we lost the connection with the server. We can check the logs in the Client and Server to try understand the problem
 
@@ -132,7 +134,6 @@ The certificates as expected are not valid anymore and the connection is not all
 ./demo.sh --deploy-spire-agents
 ```
 We need to wait 1-2 minutes and we are back on track.
-[show image]
 
 ## :arrow_left: Uninstall
 
