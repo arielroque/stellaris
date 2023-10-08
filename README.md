@@ -151,7 +151,9 @@ To uninstall the demo and the cluster you can use the following commands
 ./demo.sh --delete-minikube-cluster
 ```
 ## :rocket: Contributing
-
 Pull request are also welcome , please read  [CONTRIBUTING.md](/CONTRIBUTING.md)  for details on our code of conduct, and the process for submitting pull requests to us.
     
 -   Check  [issue templates](https://github.com/arielroque/stellaris/issues)  for the suggested issue formats
+
+## :clap: Acknowledgments
+This demo was built based on [Federation Spire tutorial](https://github.com/spiffe/spire-tutorials/tree/main/docker-compose/federation)
