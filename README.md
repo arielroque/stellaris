@@ -80,7 +80,7 @@ Now, we will deploy the Stellaris demo in a Minikube cluster. Run the following 
 # ./demo.sh --help
 ```
 
-## :rowboat: Browse the Demo
+## :rowboat: Browse the demo
 Since we have the applications running, we can open the browser to see the workflow. 
 
 ```bash
