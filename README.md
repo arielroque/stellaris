@@ -14,23 +14,49 @@
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
 - [Minikube](https://minikube.sigs.k8s.io/docs/start/)
 
-## :clipboard: Flowchart
+## :books: SPIRE
+[SPIRE](https://spiffe.io/) is a production-ready implementation of the [SPIFFE](https://spiffe.io/docs/latest/spiffe-about/overview/) APIs that performs node and workload attestation in order to securely issue SVIDs to workloads, and verify the SVIDs of other workloads, based on a predefined set of conditions. 
+
+The tool has two major components: the server and the agent. The server
+is responsible for authenticating agents and minting SVIDs, while the agent is responsible for serving the SPIFFE Workload API. Both components are written using a plugin-oriented architecture so they
+can easily be extended to adapt to a vast array of different configurations and platforms.
+
+Some use cases where SPIRE can help:
+
+ - **Zero Trust Security**: SPIRE enables organizations to implement a zero-trust security model in their distributed environments. It ensures that every workload, regardless of where it runs, has a verifiable and authenticated identity
+
+ - **Multi-Cloud and Hybrid Environments**: SPIRE is well-suited for organizations with workloads distributed across multiple cloud providers or in hybrid environments. It provides a consistent way to manage identities across diverse infrastructures
+
+ - **Microservices and Container Orchestration**: SPIRE works seamlessly with container orchestrators like Kubernetes, making it suitable for microservices-based architectures where workloads are frequently created, scaled, and destroyed
+
+ - **Security and Compliance**: SPIRE helps organizations meet security and compliance requirements by enforcing strong identity and access controls, tracking workload activity, and enabling audit trails
+
+ - **Dynamic Environments**: SPIRE's ability to dynamically rotate credentials and attest workloads is essential for maintaining security and trust in environments with frequent changes
+
+## :clipboard: Motivational problem
+We have a front-end application that needs to communicate with a back-end API deployed on the other side of the world to get sensitive information about a rocket launched into space. We don't want this information to fall into the wrong hands :clown_face: , so it is extremely important to ensure that only the correct front-end can communicate. One way of doing this is using SPIRE :rocket:
+
+In our demo, we will have 3 isolated environments (nodes), one to the SPIRE server, another to the front-end (client) together with its SPIRE agent, and finally, another for back-end API (stellaris-server) together with its SPIRE agent. We create the SPIRE entries for the front-end and back-end to match with the desired selector and finally restrict to accept only connections that contain the SPIFFE ID from the client
+
+The figure below shows the demo flow:
+
 ```mermaid
 flowchart TB
     subgraph Server Node
-    Spire-agent2--"deliver identity to application"-->Stellaris-server
+    SPIRE-agent2--"deliver identity to application"-->Stellaris-server
     end
-    Spire-Server--"send client identity to the agent"-->Spire-agent1
-    subgraph Spire Node
-    Spire-Server--"send server identity to the agent"-->Spire-agent2
+    SPIRE-server--"send client identity to the agent"-->SPIRE-agent1
+    subgraph SPIRE Node
+    SPIRE-server--"send stellaris-server identity to the agent"-->SPIRE-agent2
     end
     Client--"request data"-->Stellaris-server
     subgraph Client Node
-    Spire-agent1--"deliver identity to application"-->Client
+    SPIRE-agent1--"deliver identity to application"-->Client
     end
 ```
 
 ## :triangular_flag_on_post: Starting
+Let's start by cloning the repository
 
 ```bash
 # Clone repository
@@ -40,8 +66,8 @@ git clone https://github.com/arielroque/stellaris.git
 cd stellaris
 ```
 
-## :building_construction: Deploy Demo 
-Now, we will deploy the Stellaris demo in a Minikube cluster
+## :tv: Demo 
+Now, we will deploy the Stellaris demo in a Minikube cluster. Run the following command:
 
 ```bash
 # Create minikube cluster
@@ -50,24 +76,22 @@ Now, we will deploy the Stellaris demo in a Minikube cluster
 # Deploy Stellaris demo
 ./demo.sh --deploy
 
-# See another Commands:
+# See another commands:
 # ./demo.sh --help
 ```
 
 ## :rowboat: Browse the Demo
-
 Since we have the applications running, we can open the browser to see the workflow. 
 
 ```bash
 # Open port to access the client
-kubectl port-forward client-api-0 -n client 8080:8080
+kubectl port-forward client-api-0 -n client 8080:8080 &
 ```
 Open in your browser: [localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 ![stellaris client](images/stellaris_client.png)
 
-## :mag: Does SPIFFE/SPIRE really work?
-
+## :mag: Does SPIRE really work?
 We deployed the applications, and the identities are continuously created by the SPIRE Server every 60s. Is possible after the application is already running, kill the SPIRE agents and keep everything working? Let`s try it  
 
 ```bash
@@ -81,12 +105,13 @@ Let`s wait 60s to check if something changes...
 
 ![stellaris client not working](images/stellaris_client_not_working.png)
 
-As we can see, the application is not working well... we lost the connection with the server. We can check the logs in the Client and Server to try understand the problem
+As we can see, the application is not working well... we lost the connection with the server. We can check the logs in the Client and Server to try to understand the problem
 
 ```bash
-# Get logs from client API
+# Get logs from client
 kubectl logs client-api-0 -n client
 ```
+For client, we have something like this:
 
 ```bash
 2023/10/07 01:04:21 Error getting data: Get "https://stellaris-api.server:8090/dashboard": x509svid: could not verify leaf certificate: x509: certificate has expired or is not yet valid: current time 2023-10-07T01:04:21Z is after 2023-10-07T00:56:17Z
@@ -98,6 +123,8 @@ kubectl logs client-api-0 -n client
 kubectl logs stellaris-api-0 -n server
 ```
 
+For stellaris-server we have something like this:
+
 ```bash
 2023/10/07 01:03:01 Error getting data: Get "https://stellaris-api.server:8090/dashboard": x509svid: could not verify leaf certificate: x509: certificate has expired or is not yet valid: current time 2023-10-07T01:03:01Z is after 2023-10-07T00:56:17Z
 2023/10/07 01:03:03 Error getting data: Get "https://stellaris-api.server:8090/dashboard": x509svid: could not verify leaf certificate: x509: certificate has expired or is not yet valid: current time 2023-10-07T01:03:03Z is after 2023-10-07T00:56:17Z
@@ -108,7 +135,7 @@ The certificates as expected are not valid anymore and the connection is not all
 ```bash
 ./demo.sh --deploy-spire-agents
 ```
-We need to wait 1-2 minutes and we are back on track.
+We need to wait 1-2 minutes and we are back on track :rocket: 
 
 ## :arrow_left: Uninstall
 
