@@ -126,8 +126,10 @@ kubectl logs stellaris-api-0 -n server
 For stellaris-server we have something like this:
 
 ```bash
-2023/10/07 01:03:01 Error getting data: Get "https://stellaris-api.server:8090/dashboard": x509svid: could not verify leaf certificate: x509: certificate has expired or is not yet valid: current time 2023-10-07T01:03:01Z is after 2023-10-07T00:56:17Z
-2023/10/07 01:03:03 Error getting data: Get "https://stellaris-api.server:8090/dashboard": x509svid: could not verify leaf certificate: x509: certificate has expired or is not yet valid: current time 2023-10-07T01:03:03Z is after 2023-10-07T00:56:17Z
+2023/10/08 02:13:58 http: TLS handshake error from 10.244.1.2:37764: remote error: tls: bad certificate
+2023/10/08 02:13:59 http: TLS handshake error from 10.244.1.2:37780: remote error: tls: bad certificate
+2023/10/08 02:14:00 http: TLS handshake error from 10.244.1.2:45494: remote error: tls: bad certificate
+
 ```
 
 The certificates as expected are not valid anymore and the connection is not allowed. Let's deploy the SPIRE agents again to solve this problem.

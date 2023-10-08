@@ -39,13 +39,13 @@ function create_workload_entry() {
 		/opt/spire/bin/spire-server entry create \
 		-spiffeID spiffe://example.org/client-wl \
 		-parentID spiffe://example.org/ns/spire/sa/spire-agent \
-		-selector k8s:container-name:client-api
+		-selector k8s:container-image:arieluz/stellaris:client
 
 	kubectl exec -n spire $SPIRE_SERVER_POD_NAME -- \
 		/opt/spire/bin/spire-server entry create \
 		-spiffeID spiffe://example.org/stellaris-wl \
 		-parentID spiffe://example.org/ns/spire/sa/spire-agent \
-		-selector k8s:container-name:stellaris-api
+		-selector k8s:container-image:arieluz/stellaris:server
 }
 
 function create_spire_agent_entry() {
