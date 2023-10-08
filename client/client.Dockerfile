@@ -4,4 +4,4 @@ COPY src /client
 
 WORKDIR /client
 
-CMD ./broker-webapp
+CMD ./stellaris-client

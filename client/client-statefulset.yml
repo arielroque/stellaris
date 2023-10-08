@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: client-api
-  namespace: spire
+  namespace: client
 spec:
   type: NodePort
   ports:
@@ -17,7 +17,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: client-api
-  namespace: spire
+  namespace: client
   labels:
     app: client-api
 spec:
@@ -34,7 +34,8 @@ spec:
       nodeName: minikube-m02
       containers:
       - name: client-api
-        image: localhost:5000/stellaris-client:latest
+        image: arieluz/stellaris:client
+        imagePullPolicy: Always
         volumeMounts:
         - name: spire-bundle
           mountPath: /run/spire/bundle

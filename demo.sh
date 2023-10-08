@@ -15,13 +15,21 @@ TMPDIR=$(mktemp -d)
 CHECKINTERVAL=1
 SERVERLOGS=${TMPDIR}/spire-server-logs.log
 
+CLIENT_NAMESPACE=client
+SERVER_NAMESPACE=server
+SPIRE_NAMESPACE=spire
+
 HELP="Usage: \n
-\texp-setup --deploy\n 
-\texp-setup --cleanup\n 
+\tdemo --create-minikube-cluster\n
+\tdemo --deploy\n 
+\tdemo --build-images\n
+\tdemo --cleanup-demo\n
+\tdemo --deploy-spire-agents\n
+\tdemo --delete-spire-agents\n
+\tdemo --delete-minikube-cluster 
 "
 
 function create_workload_entry() {
-
 	SPIRE_SERVER_POD_NAME=$(kubectl get pods -n spire \
 		-o=jsonpath='{.items[0].metadata.name}' -l app=spire-server)
 
@@ -31,17 +39,16 @@ function create_workload_entry() {
 		/opt/spire/bin/spire-server entry create \
 		-spiffeID spiffe://example.org/client-wl \
 		-parentID spiffe://example.org/ns/spire/sa/spire-agent \
-		-selector k8s:container-name:client-api
+		-selector k8s:container-image:arieluz/stellaris:client
 
 	kubectl exec -n spire $SPIRE_SERVER_POD_NAME -- \
 		/opt/spire/bin/spire-server entry create \
 		-spiffeID spiffe://example.org/stellaris-wl \
 		-parentID spiffe://example.org/ns/spire/sa/spire-agent \
-		-selector k8s:container-name:stellaris-api
+		-selector k8s:container-image:arieluz/stellaris:server
 }
 
-function create_agent_entry() {
-
+function create_spire_agent_entry() {
 	SPIRE_SERVER_POD_NAME=$(kubectl get pods -n spire \
 		-o=jsonpath='{.items[0].metadata.name}' -l app=spire-server)
 
@@ -55,13 +62,23 @@ function create_agent_entry() {
 		-selector k8s_sat:agent_sa:spire-agent
 }
 
-function apply_server_config() {
+function deploy_spire_server() {
+	echo ""
+	echo -ne "${green}"
+    echo "┌────────────────────────────┐"
+    echo "  SPIRE Server"
+    echo "└────────────────────────────┘"
+    echo -ne "${nn}"
+	echo ""
+
 	echo -n "${bold}Applying SPIRE server k8s configuration... ${norm}"
 	kubectl apply -f ${DIR}/spire/spire-namespace.yaml >/dev/null
 	kubectl apply -f ${DIR}/spire/server-account.yaml >/dev/null
 	kubectl apply -f ${DIR}/spire/server-cluster-role.yaml >/dev/null
 	kubectl apply -f ${DIR}/spire/server-configmap.yaml >/dev/null
-	kubectl apply -f ${DIR}/spire/spire-bundle-configmap.yaml >/dev/null
+
+	export MANIFEST_NAMESPACE=$SPIRE_NAMESPACE
+	envsubst <${DIR}/spire/spire-bundle-configmap.yaml | kubectl apply -f -
 	kubectl apply -f ${DIR}/spire/server-service.yaml >/dev/null
 
 	envsubst <${DIR}/spire/server-statefulset.yaml | kubectl apply -f -
@@ -79,17 +96,20 @@ function apply_server_config() {
 	echo "${green}ok.${norm}"
 }
 
-function apply_agent_config() {
+function deploy_spire_agents() {
+	echo ""
+	echo -ne "${green}"
+    echo "┌────────────────────────────┐"
+    echo "  SPIRE Agents"
+    echo "└────────────────────────────┘"
+    echo -ne "${nn}"
+	echo ""
+
 	echo -n "${bold}Applying SPIRE agent k8s configuration... ${norm}"
 	kubectl apply -f ${DIR}/spire/agent-account.yaml >/dev/null
 	kubectl apply -f ${DIR}/spire/agent-cluster-role.yaml >/dev/null
 	kubectl apply -f ${DIR}/spire/agent-configmap.yaml >/dev/null
-
-	SPIRE_AGENT_NODE=$SPIRE_AGENT1_NODE
-	envsubst <${DIR}/spire/agent-daemonset.yaml | kubectl apply -f -
-
-	SPIRE_AGENT_NODE=$SPIRE_AGENT2_NODE
-	envsubst <${DIR}/spire/agent-daemonset.yaml | kubectl apply -f -
+	kubectl apply -f ${DIR}/spire/agent-daemonset.yaml >/dev/null
 
 	sleep 5
 
@@ -104,8 +124,25 @@ function apply_agent_config() {
 	echo "${green}ok.${norm}"
 }
 
-function check_for_node_attestation() {
+function delete_spire_agents() {
+	echo ""
+	echo -ne "${green}"
+    echo "┌────────────────────────────┐"
+    echo "  Deleting SPIRE Agents"
+    echo "└────────────────────────────┘"
+    echo -ne "${nn}"
+	echo ""
 
+	echo -n "${bold}Applying SPIRE agent k8s configuration... ${norm}"
+	kubectl delete -f ${DIR}/spire/agent-account.yaml >/dev/null
+	kubectl delete -f ${DIR}/spire/agent-cluster-role.yaml >/dev/null
+	kubectl delete -f ${DIR}/spire/agent-configmap.yaml >/dev/null
+	kubectl delete -f ${DIR}/spire/agent-daemonset.yaml >/dev/null
+
+	echo "${green}ok.${norm}"
+}
+
+function check_for_node_attestation() {
 	SPIRE_SERVER_POD_NAME=$(kubectl get pods -n spire \
 		-o=jsonpath='{.items[0].metadata.name}' -l app=spire-server)
 
@@ -125,12 +162,7 @@ function check_for_node_attestation() {
 	exit -1
 }
 
-function tear_down_config() {
-	kubectl delete namespace spire >/dev/null || true
-}
-
-function delete_entries {
-
+function delete_entries() {
 	SPIRE_SERVER=$(kubectl get pods -n spire -o=jsonpath='{.items[0].metadata.name}' -l app=spire-server)
 
 	entries=$(kubectl exec -n spire $SPIRE_SERVER -- /opt/spire/bin/spire-server entry show | grep "Entry" | cut -d ':' -f 2)
@@ -142,68 +174,130 @@ function delete_entries {
 	echo "Deleted entries from K8S!"
 }
 
-function deploy_client {
+function deploy_client() {
+    echo ""
+	echo -ne "${green}"
+    echo "┌────────────────────────────┐"
+    echo "  Client"
+    echo "└────────────────────────────┘"
+    echo -ne "${nn}"
+	echo ""
+
 	echo -n "${bold}Deploying Client... ${norm}"
+	kubectl create namespace client
+	
+	export MANIFEST_NAMESPACE=$CLIENT_NAMESPACE
+	envsubst <${DIR}/spire/spire-bundle-configmap.yaml | kubectl apply -f -
 	envsubst <${DIR}/client/client-statefulset.yml | kubectl apply -f -
 }
 
-function deploy_stellaris {
-	echo -n "${bold}Deploying Stellaris... ${norm}"
+function deploy_server() {
+    echo ""
+	echo -ne "${green}"
+    echo "┌────────────────────────────┐"
+    echo "  Server"
+    echo "└────────────────────────────┘"
+    echo -ne "${nn}"
+	echo ""
+
+	echo -n "${bold}Deploying server... ${norm}"
+	kubectl create namespace server
+
+	export MANIFEST_NAMESPACE=$SERVER_NAMESPACE
+	envsubst <${DIR}/spire/spire-bundle-configmap.yaml | kubectl apply -f -
 	envsubst <${DIR}/stellaris/stellaris-statefulset.yml | kubectl apply -f -
 }
 
-function build_images {
+function build_images() {
+	CONTAINER_REGISTRY=$1
 
+	echo $CONTAINER_REGISTRY
+
+	if [ -z "$CONTAINER_REGISTRY" ]; then
+    	echo "${yellow}Container registry need to be passed... Try again${norm}"
+		exit
+	fi
+  
+	
 	(cd "${DIR}"/client/src && CGO_ENABLED=0 GOOS=linux go build -v -o "${DIR}"/client/src)
 	(cd "${DIR}"/stellaris/src && CGO_ENABLED=0 GOOS=linux go build -v -o "${DIR}"/stellaris/src)
 
-	cd "${DIR}"/client && docker build -t stellaris-client -f client.Dockerfile .
-	cd "${DIR}"/stellaris && docker build -t stellaris-api -f stellaris.Dockerfile .
+	cd "${DIR}"/client && docker build -t $CONTAINER_REGISTRY:client -f client.Dockerfile .
+	cd "${DIR}"/stellaris && docker build -t $CONTAINER_REGISTRY:server -f stellaris.Dockerfile .
 
-	docker tag stellaris-client localhost:5000/stellaris-client
-	docker tag stellaris-api localhost:5000/stellaris-api
+	docker push $CONTAINER_REGISTRY:client
+	docker push $CONTAINER_REGISTRY:server
+}
 
-	docker push localhost:5000/stellaris-client
-	docker push localhost:5000/stellaris-api
+function create_minikube_cluster() {
+    minikube start \
+		--kubernetes-version=v1.23.8 \
+        --cpus=2 \
+        --memory='2g' \
+        --nodes 3 \
+        --extra-config=apiserver.service-account-signing-key-file=/var/lib/minikube/certs/sa.key \
+        --extra-config=apiserver.service-account-key-file=/var/lib/minikube/certs/sa.pub \
+        --extra-config=apiserver.service-account-issuer=api \
+        --extra-config=apiserver.service-account-api-audiences=api,spire-server \
+        --extra-config=apiserver.authorization-mode=Node,RBAC
 }
 
 function deploy_demo() {
-	cleanup
-	build_images
-	apply_server_config
+	cleanup_demo
+	deploy_spire_server
 	delete_entries
-	create_agent_entry
+	create_spire_agent_entry
 	create_workload_entry
-	apply_agent_config
+	deploy_spire_agents
 	check_for_node_attestation
 	deploy_client
-	deploy_stellaris
+	deploy_server
 
-	echo "${bold}Success.${norm}"
+	echo "${bold}Success...${norm}"
 }
 
-function cleanup() {
-
+function cleanup_demo() {
 	namespaces=$(kubectl get ns)
 
 	if [[ $namespaces != *"spire"* ]]; then
 		return
 	fi
 
-	echo -n "${bold}Cleaning up... ${norm}"
+	echo -n "${bold}Cleaning demo... ${norm}"
+	
 	if [ ! -z "${SUCCESS}" ]; then
 		rm -rf ${TMPDIR}
 	fi
-	tear_down_config
+
+	kubectl delete namespace spire >/dev/null || true
+	kubectl delete namespace client >/dev/null || true
+	kubectl delete namespace server >/dev/null || true
+
 	echo "${green}ok${norm}."
 }
 
-#trap cleanup EXIT
+function delete_minikube_cluster() {
+	echo -n "${bold}Deleting minikube cluster ... ${norm}"
+
+    minikube delete --all
+    minikube addons enable registry  
+    docker rm register-container-aux -f  >/dev/null 2>&1
+	
+	echo "${green}ok${norm}."
+}
+
+trap EXIT
 
 COMMAND=$1
 
 case $COMMAND in
 --deploy) deploy_demo ;;
---cleanup) cleanup ;;
+--build-images) build_images $2;;
+--create-minikube-cluster) create_minikube_cluster ;; 
+--cleanup-demo) cleanup_demo ;;
+--deploy-spire-agents) deploy_spire_agents;;
+--delete-spire-agents) delete_spire_agents;;
+--delete-minikube-cluster) delete_minikube_cluster ;; 
+
 *) echo -e "Invalid command!\n" && echo -e $HELP ;;
 esac

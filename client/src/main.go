@@ -7,8 +7,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"stellaris-client/dashboard"
 	"time"
-	"broker-webapp/quotes"
+
 	"github.com/spiffe/go-spiffe/v2/spiffeid"
 	"github.com/spiffe/go-spiffe/v2/spiffetls/tlsconfig"
 	"github.com/spiffe/go-spiffe/v2/workloadapi"
@@ -16,21 +17,21 @@ import (
 
 const (
 	port       = 8080
-	quotesURL  = "https://stellaris-api:8090/quotes"
+	dataURL    = "https://stellaris-api.server:8090/dashboard"
 	socketPath = "unix:///run/spire/sockets/agent.sock"
 )
 
 var (
-	latestQuotes = []*quotes.Quote(nil)
+	latestData   = []*dashboard.Data(nil)
 	latestUpdate = time.Now()
-	// Stock quotes provider SPIFFE ID
-	quotesProviderSpiffeID = spiffeid.RequireFromString("spiffe://example.org/stellaris-wl")
-	x509Src                *workloadapi.X509Source
-	bundleSrc              *workloadapi.BundleSource
+	// Stellaris quotes provider SPIFFE ID
+	dataProviderSpiffeID = spiffeid.RequireFromString("spiffe://example.org/stellaris-wl")
+	x509Src              *workloadapi.X509Source
+	bundleSrc            *workloadapi.BundleSource
 )
 
 func main() {
-	log.Print("Webapp waiting for an X.509 SVID...")
+	log.Print("Service waiting for an X.509 SVID...")
 
 	ctx := context.Background()
 
@@ -45,7 +46,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Print("Webapp waiting for a trust bundle...")
+	log.Print("Service waiting for a trust bundle...")
 
 	bundleSrc, err = workloadapi.NewBundleSource(ctx,
 		workloadapi.WithClientOptions(
@@ -59,9 +60,9 @@ func main() {
 	server := &http.Server{
 		Addr: fmt.Sprintf(":%d", port),
 	}
-	http.HandleFunc("/quotes", quotesHandler)
+	http.HandleFunc("/dashboard", dashboardHandler)
 
-	log.Printf("Webapp listening on port %d...", port)
+	log.Printf("Client listening on port %d...", port)
 
 	err = server.ListenAndServe()
 	if err != nil {
@@ -69,43 +70,43 @@ func main() {
 	}
 }
 
-func quotesHandler(resp http.ResponseWriter, req *http.Request) {
+func dashboardHandler(resp http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodGet {
 		resp.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
-	data, err := getQuotesData()
+	data, err := getDashboardData()
 
 	if data != nil {
-		latestQuotes = data
+		latestData = data
 		latestUpdate = time.Now()
 	} else {
-		data = latestQuotes
+		data = latestData
 	}
 
-	quotes.Page.Execute(resp, map[string]interface{}{
+	dashboard.Page.Execute(resp, map[string]interface{}{
 		"Data":        data,
 		"Err":         err,
 		"LastUpdated": latestUpdate,
 	})
 }
 
-func getQuotesData() ([]*quotes.Quote, error) {
+func getDashboardData() ([]*dashboard.Data, error) {
 	client := http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: tlsconfig.MTLSClientConfig(x509Src, bundleSrc, tlsconfig.AuthorizeID(quotesProviderSpiffeID)),
+			TLSClientConfig: tlsconfig.MTLSClientConfig(x509Src, bundleSrc, tlsconfig.AuthorizeID(dataProviderSpiffeID)),
 		},
 	}
 
-	resp, err := client.Get(quotesURL)
+	resp, err := client.Get(dataURL)
 	if err != nil {
-		log.Printf("Error getting quotes: %v", err)
+		log.Printf("Error getting data: %v", err)
 		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("Quotes unavailables: %s", resp.Status)
+		log.Printf("Dashboard data unavailable: %s", resp.Status)
 		return nil, err
 	}
 
@@ -115,7 +116,7 @@ func getQuotesData() ([]*quotes.Quote, error) {
 		return nil, err
 	}
 
-	data := []*quotes.Quote{}
+	data := []*dashboard.Data{}
 	err = json.Unmarshal(jsonData, &data)
 	if err != nil {
 		log.Printf("Error unmarshaling json quotes: %v", err)

@@ -1,4 +1,4 @@
-module broker-webapp
+module stellaris-client
 
 go 1.14
 
