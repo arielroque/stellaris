@@ -36,7 +36,7 @@ Some use cases where SPIRE can help:
 ## :clipboard: Motivational problem
 We have a front-end application that needs to communicate with a back-end API deployed on the other side of the world to get sensitive information about a rocket launched into space. We don't want this information to fall into the wrong hands :clown_face: , so it is extremely important to ensure that only the correct front-end can communicate. One way of doing this is using SPIRE :rocket:
 
-In our demo, we will have 3 isolated environments (nodes), one to the SPIRE server, another to the front-end (client) together with its SPIRE agent, and finally, another for back-end API (stellaris-server) together with its SPIRE agent. We create the SPIRE entries for the front-end and back-end to match with the desired selector and finally restrict to accept only connections that contain the SPIFFE ID from the client
+In our demo, we will have 3 isolated environments (nodes), one to the SPIRE server, another to the front-end (client) together with its SPIRE agent, and finally, another for back-end API (stellaris-server) together with its SPIRE agent. We create the SPIRE entries for the front-end and back-end to match with the desired selector (we chose ```k8s:container-image``` as the selector, you can see [here](https://github.com/arielroque/stellaris/blob/main/demo.sh#L32) and finally restrict to accept only connections that contain the SPIFFE ID from the client
 
 The figure below shows the demo flow:
 
